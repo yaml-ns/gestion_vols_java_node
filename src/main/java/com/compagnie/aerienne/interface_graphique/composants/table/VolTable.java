@@ -149,9 +149,7 @@ public class VolTable{
 
 
     private void onReserve(){
-        System.out.println("On reserve");
         int row = table.getSelectedRow();
-        System.out.println(row);
         int rowIndex = table.convertRowIndexToModel(row);
         Vol vol = tableModel.getVolAt(rowIndex);
         Window w = SwingUtilities.getWindowAncestor(table);

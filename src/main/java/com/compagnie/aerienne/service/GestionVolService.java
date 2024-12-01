@@ -17,10 +17,6 @@ public class GestionVolService {
     public List<Vol> listeVols;
     private final String API_VOLS_URL = "http://127.0.0.1:3000/api/v1/vols/";
 
-    public GestionVolService() throws IOException {
-        listeVols = DataPersister.read();
-    }
-
     public List<Vol> getAll() throws IOException {
         URL url = new URL(API_VOLS_URL);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -59,31 +55,35 @@ public class GestionVolService {
     public Vol addVol(Vol vol) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonInputString = objectMapper.writeValueAsString(vol);
-
         URL url = new URL(API_VOLS_URL);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
         connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json; utf-8");
         connection.setRequestProperty("Accept", "application/json");
+        connection.setRequestProperty("Content-Type", "application/json");
         connection.setDoOutput(true);
-
-        DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
-            outputStream.writeBytes(jsonInputString);
-            outputStream.flush();
-
+        try (OutputStream os = connection.getOutputStream();
+             OutputStreamWriter writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
+            writer.write(jsonInputString);
+            writer.flush();
+        }
 
         int responseCode = connection.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_CREATED || responseCode == HttpURLConnection.HTTP_OK) {
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            try (BufferedReader in = new BufferedReader(
+                    new InputStreamReader(
+                            connection.getInputStream(),
+                            StandardCharsets.UTF_8
+                    )
+            )) {
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = in.readLine()) != null) {
+                    response.append(line);
+                }
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            StringBuilder response = new StringBuilder();
-            String line;
-            while ((line = in.readLine()) != null) {
-                response.append(line);
+                return objectMapper.readValue(response.toString(), Vol.class);
             }
-
-            return objectMapper.readValue(response.toString(), Vol.class);
-
         } else {
             return null;
         }
@@ -131,13 +131,11 @@ public class GestionVolService {
     public boolean deleteVol(int id) throws IOException {
 
         URL url = new URL(API_VOLS_URL + id);
-        System.out.println(url);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("DELETE");
         connection.setRequestProperty("Accept", "application/json");
 
         int responseCode = connection.getResponseCode();
-        System.out.println(responseCode);
         connection.disconnect();
         return responseCode == HttpURLConnection.HTTP_OK;
 
