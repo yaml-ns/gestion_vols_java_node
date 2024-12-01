@@ -128,6 +128,8 @@ public class FormulaireVol extends JDialog {
 
     private void process(Vol vol){
 
+        InfoPanel infoPanel = InfoPanel.getInstance();
+
         VolValidator validator = new VolValidator(
                 vol.getIdVol(),
                 this.destination.getText(),
@@ -145,32 +147,50 @@ public class FormulaireVol extends JDialog {
                 GestionVolService volManager = new GestionVolService();
                 String infoMessage;
                 if (validatedVol.getIdVol() == 0){
-                    validatedVol.setIdVol(volManager.getNextId());
+                    try {
                     volManager.addVol(validatedVol);
-                    infoMessage = """
+                        infoMessage = """
                                        Le Vol %d à destination de %s a été ajouté avec succès !"""
-                            .formatted(
-                            validatedVol.getIdVol(),
-                            validatedVol.getDestination()
-                    );
+                                .formatted(
+                                        validatedVol.getIdVol(),
+                                        validatedVol.getDestination()
+                                );
 
-                    SouthPanel.getInstance().setTotalVols(volManager.getAll().size());
+                        SouthPanel.getInstance().setTotalVols(volManager.getAll().size());
+                        infoPanel.setOperationResult(infoMessage, InfoPanel.messageType.SUCCESS);
+                    }catch (Exception e){
+                        infoMessage = "Une erreur s'est produite pendant l'ajout du vol";
+                        infoPanel.setOperationResult(infoMessage, InfoPanel.messageType.ERROR);
+                    }
 
                 }else{
-                    volManager.updateVol(validatedVol);
-                    infoMessage = """
+                    try {
+
+                    Vol updatedVol = volManager.updateVol(validatedVol);
+                    if (updatedVol != null){
+                        infoMessage = """
                                        Le Vol %d à destination de %s a été modifié avec succès !"""
-                            .formatted(
-                            validatedVol.getIdVol(),
-                            validatedVol.getDestination()
-                    );
+                                .formatted(
+                                        validatedVol.getIdVol(),
+                                        validatedVol.getDestination()
+                                );
+                        infoPanel.setOperationResult(infoMessage, InfoPanel.messageType.SUCCESS);
+                    }else{
+                        infoMessage = "Une erreur s'est produite pendant la mise à jour";
+                        infoPanel.setOperationResult(infoMessage, InfoPanel.messageType.ERROR);
+                    }
+                    }catch (Exception e){
+                        infoMessage = "Une erreur s'est produite pendant la mise à jour";
+                        infoPanel.setOperationResult(infoMessage, InfoPanel.messageType.ERROR);
+                    }
+
                 }
                 ip.rafraichirTable(volManager.getAll());
                 this.resetForm();
                 dispose();
-                InfoPanel.getInstance().setOperationResult(infoMessage, InfoPanel.messageType.SUCCESS);
+
             }catch (Exception exception){
-                errorMessage.setText("Une erreur s'est produite pendant l'ajout.");
+                errorMessage.setText("Une erreur s'est produite lors de cette opération.");
             }
 
         }

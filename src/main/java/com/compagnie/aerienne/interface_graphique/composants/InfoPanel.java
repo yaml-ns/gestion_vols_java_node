@@ -11,6 +11,7 @@ import java.awt.*;
 
 public class InfoPanel extends JPanel {
 
+    Chargement chargement = new Chargement();
     public enum messageType{
         ERROR, SUCCESS
     }
@@ -19,6 +20,7 @@ public class InfoPanel extends JPanel {
     public InfoPanel(){
         setBackground(AppColors.BG_LIGHT);
         setBorder(new EmptyBorder(0,0,0,0));
+        add(chargement);
         add(this.operationResult,BorderLayout.CENTER);
 
     }
@@ -57,5 +59,9 @@ public class InfoPanel extends JPanel {
         timer.setRepeats(false);
         timer.start();
 
+    }
+
+    public void setIsLoading(boolean isLoading){
+        chargement.setVisible(isLoading);
     }
 }

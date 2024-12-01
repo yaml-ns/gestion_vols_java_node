@@ -127,16 +127,21 @@ public class VolTable{
 
         if (confirmation == 0){
             try {
-                volManager.deleteVol(vol.getIdVol());
-                List<Vol> nouvelleListe = volManager.getAll();
-                this.updateData(nouvelleListe);
-                InfoPanel.getInstance().setOperationResult("Vol supprimé avec succès", InfoPanel.messageType.SUCCESS);
-                SouthPanel.getInstance().setTotalVols(nouvelleListe.size());
+                boolean success = volManager.deleteVol(vol.getIdVol());
+                if (success){
+                    List<Vol> nouvelleListe = volManager.getAll();
+                    this.updateData(nouvelleListe);
+                    InfoPanel.getInstance().setOperationResult("Vol supprimé avec succès", InfoPanel.messageType.SUCCESS);
+                    SouthPanel.getInstance().setTotalVols(nouvelleListe.size());
+                }else {
+                    InfoPanel.getInstance().setOperationResult(
+                            "Une erreur s'est produite pendant l'opération!",
+                            InfoPanel.messageType.ERROR);
+                }
             } catch (IOException ex) {
                 InfoPanel.getInstance().setOperationResult(
                         "Une erreur s'est produite pendant l'opération!",
                         InfoPanel.messageType.ERROR);
-
             }
 
         }

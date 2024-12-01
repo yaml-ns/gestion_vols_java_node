@@ -133,19 +133,23 @@ public class FormulaireReservationVol extends JDialog {
                     setErrorMessage("");
                     try {
                         GestionVolService volManager = new GestionVolService();
-                        volManager.addReservation(vol, reservations);
-                        String infoMessage = """
+                        if (volManager.addReservation(vol, reservations)){
+                            String infoMessage = """
                                            %d réservations confirmées pour le vol %d
                                             à destination de %s
                                             """.formatted(
-                                reservations,
-                                vol.getIdVol(),
-                                vol.getDestination());
+                                    reservations,
+                                    vol.getIdVol(),
+                                    vol.getDestination());
 
-                        ip.rafraichirTable(volManager.getAll());
-                        resetForm();
-                        dispose();
-                        InfoPanel.getInstance().setOperationResult(infoMessage, InfoPanel.messageType.SUCCESS);
+                            ip.rafraichirTable(volManager.getAll());
+                            resetForm();
+                            dispose();
+                            InfoPanel.getInstance().setOperationResult(infoMessage, InfoPanel.messageType.SUCCESS);
+                        }else{
+                            setErrorMessage("Une erreur s'est produite pendant la réservation");
+                        }
+
                     } catch (Exception exception) {
                         setErrorMessage("Une erreur s'est produite pendant la réservation");
                     }
